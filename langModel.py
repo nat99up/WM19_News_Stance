@@ -62,8 +62,6 @@ def Retrieval_LM(query_word_list,vocab_list,inv_list,doc_len,prob_REF,u = 2116):
             pwREF = prob_REF[word]
             # calculate the document score
             document_scores[doc] += count * np.log(1 + cwd/(u * pwREF))
-            
-    
     
     # Sort the document score pair by the score
     sorted_document_scores = sorted(document_scores.items(), key=operator.itemgetter(1), reverse=True)
@@ -73,12 +71,15 @@ def Retrieval_LM(query_word_list,vocab_list,inv_list,doc_len,prob_REF,u = 2116):
     
     return res
 
-def Query_expand(original_query_words,ret_res,inv_list,top_k = 3,top_terms = 10):
-    
 
+def Query_expand(original_query_words,ret_res,inv_list,top_d = 3,top_k = 10):
     
-    feedback_doc = ret_res[:top_k]
+    # TF Normalization Parameter
+    k = 10
+    
+    feedback_doc = ret_res[:top_d]
     feedback_dict = dict()
+    feedback_doc_of_word = dict()
     
     for (word,info) in inv_list.items():
         idf = info['idf']
@@ -88,16 +89,31 @@ def Query_expand(original_query_words,ret_res,inv_list,top_k = 3,top_terms = 10)
         for document_count_dict in info['docs']:
             for doc, doc_tf in document_count_dict.items(): 
                 if doc in feedback_doc:
+                    
+                    doc_tf_norm = (k+1)*doc_tf/(doc_tf+k)
+                    
                     if word in feedback_dict:
-                        feedback_dict[word] += doc_tf
+                        feedback_dict[word] += doc_tf_norm
+                        feedback_doc_of_word[word] += 1
                     else:
-                        feedback_dict[word] = doc_tf
+                        feedback_dict[word] = doc_tf_norm
+                        feedback_doc_of_word[word] = 1
+                        
+    # Remove the words that only appear in less documents
+    for word,cnt in feedback_doc_of_word.items():
+        if cnt <= top_d/10 :
+            feedback_dict[word] = -1
     
+                        
     feedback_lead = sorted(feedback_dict, key=feedback_dict.get, reverse=True)
-    feedback_lead = feedback_lead[:top_terms]
+    feedback_lead = feedback_lead[:top_k]
     
     new_query_words = original_query_words + feedback_lead
     
     print('Exapended Query:',new_query_words)
         
     return new_query_words
+
+
+
+

@@ -96,8 +96,8 @@ for (query_id, query) in querys:
     new_query_words = Query_expand(original_query_words=query_words,
                                    ret_res=retrieval_result,
                                    inv_list=invert_file,
-                                   top_k=3,
-                                   top_terms=10)
+                                   top_d=10,
+                                   top_k=20)
     
     print('第%d次Feedback完成'%1)
     
@@ -111,8 +111,8 @@ for (query_id, query) in querys:
     new_query_words = Query_expand(original_query_words=new_query_words,
                                    ret_res=retrieval_result,
                                    inv_list=invert_file,
-                                   top_k=5,
-                                   top_terms=12)
+                                   top_d=30,
+                                   top_k=40)
     
     print('第%d次Feedback完成'%2)
     
@@ -123,11 +123,13 @@ for (query_id, query) in querys:
                                     prob_REF=prob_word,
                                     u=u)
     
+    
+    
     print('%s documents likelihood completed' % (query_id))
     
     final_ans.append(retrieval_result)
 
-# write answer to csv file
+# Write answer to csv file
 with open(args.output_file, 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     head = ['Query_Index'] + ['Rank_%03d'%i for i in range(1,301)]
